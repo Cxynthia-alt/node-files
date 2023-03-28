@@ -15,7 +15,7 @@ if (process.argv[2] === '--out') {
 if (path.startsWith('http://') || path.startsWith('https://')) {
   webCat(path, out)
 } else {
-  cat(path)
+  cat(path, out)
 }
 
 
@@ -52,7 +52,7 @@ function saveFile(data, fileName) {
       }
     })
   } else {
-    console.log(data)
+    console.log('Write failed. Plz print data dn fileName', data, fileName);
   }
 
 }

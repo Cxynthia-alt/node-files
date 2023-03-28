@@ -1,61 +1,58 @@
 const fs = require('fs')
 const axios = require('axios')
+const process = require('process');
 
-const args = process.argv.slice(2)
-const outputIndex = args.findIndex(arg => arg.startsWith('--out'))
-let outputFileName;
-let input;
+let path, out
 
-if (outputIndex >= 0) {
-  outputFileName = args[1]
-  input = args.pop()
+
+if (process.argv[2] === '--out') {
+  out = process.argv[3]
+  path = process.argv[4]
 } else {
-  input = process.argv[2]
+  path = process.argv[2]
+}
+
+if (path.startsWith('http://') || path.startsWith('https://')) {
+  webCat(path, out)
+} else {
+  cat(path)
 }
 
 
-
-function cat(path, fileName) {
+function cat(path, out) {
   fs.readFile(path, 'utf8', (err, data) => {
     if (err) {
       console.log("Error:", err)
       process.kill(1)
     }
-    if (fileName) {
-      saveFile(fileName, data)
+    else {
+      saveFile(data, out)
     }
-    console.log(data)
   })
 
 }
 
-function webCat(url) {
-  axios.get(`${url}`).then(function (resp) {
+function webCat(url, out) {
+  const res = axios.get(`${url}`)
+  res.then(function (resp) {
     const fileName = new URL(`${url}`).hostname
-    saveFile(fileName, resp.data)
+    saveFile(resp.data, fileName)
   })
     .catch((err) => { console.log("Error: ", err) })
 }
 
 
 
-function saveFile(fileName, data) {
-  fs.writeFile(fileName, data, 'utf8', function (err) {
-    if (err) {
-      console.log("Error:", err)
-      process.kill(1)
-    }
-    console.log(data.slice(0, 80), '...')
-  })
-}
+function saveFile(data, fileName) {
+  if (fileName) {
+    fs.writeFile(fileName, data, 'utf8', function (err) {
+      if (err) {
+        console.log("Error:", err)
+        process.kill(1)
+      }
+    })
+  } else {
+    console.log(data)
+  }
 
-
-function catWrite(path, fileName, outputFileName) {
-  fs.writeFile(outputFileName, data, 'utf8', function (err) {
-    if (err) {
-      console.log("Couldn't write", outputFileName + ':')
-      console.log(err)
-      process.exit(1)
-    }
-  })
 }

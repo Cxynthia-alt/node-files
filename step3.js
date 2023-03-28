@@ -1,12 +1,19 @@
 const fs = require('fs')
 const axios = require('axios')
-const input = process.argv[2]
 
-if (input.startsWith('http://') || input.startsWith('https://')) {
-  webCat(process.argv[2])
+const args = process.argv.slice(2)
+const outputIndex = args.findIndex(arg => arg.startsWith('--out'))
+let outputFileName;
+let input;
+
+if (outputIndex >= 0) {
+  outputFileName = args[1]
+  input = args.pop()
 } else {
-  cat(process.argv[2])
+  input = process.argv[2]
 }
+
+
 
 function cat(path, fileName) {
   fs.readFile(path, 'utf8', (err, data) => {
@@ -39,5 +46,16 @@ function saveFile(fileName, data) {
       process.kill(1)
     }
     console.log(data.slice(0, 80), '...')
+  })
+}
+
+
+function catWrite(path, fileName, outputFileName) {
+  fs.writeFile(outputFileName, data, 'utf8', function (err) {
+    if (err) {
+      console.log("Couldn't write", outputFileName + ':')
+      console.log(err)
+      process.exit(1)
+    }
   })
 }
